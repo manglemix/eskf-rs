@@ -42,7 +42,7 @@ use core::ops::{AddAssign, SubAssign};
 
 use nalgebra::{
     base::allocator::Allocator, DefaultAllocator, Dim, Matrix2, Matrix3, OMatrix, OVector, Point3,
-    UnitQuaternion, Vector2, Vector3, U1, U15, U2, U3, U5,
+    UnitQuaternion, Vector, Vector2, Vector3, U1, U15, U2, U3, U5,
 };
 
 /// Potential errors raised during operations
@@ -74,7 +74,7 @@ pub struct Builder {
     var_rot: Vector3<f32>,
     var_acc_bias: Vector3<f32>,
     var_rot_bias: Vector3<f32>,
-    process_covariance: f32,
+    process_covariance: InitialCovariances,
 }
 
 impl Builder {
@@ -153,6 +153,18 @@ impl Builder {
     /// quickly converges to the correct value. Too small values could lead to the filter taking a
     /// long time to converge and report a lower covariance than what it should.
     pub fn initial_covariance(mut self, covar: f32) -> Self {
+        self.process_covariance = InitialCovariances {
+            position: covar,
+            velocity: covar,
+            orientation: covar,
+            accel_bias: covar,
+            rot_bias: covar,
+        };
+        self
+    }
+
+    /// Set the initial covariances for each component
+    pub fn initial_covariances(mut self, covar: InitialCovariances) -> Self {
         self.process_covariance = covar;
         self
     }
@@ -165,13 +177,47 @@ impl Builder {
             orientation: UnitQuaternion::identity(),
             accel_bias: Vector3::zeros(),
             rot_bias: Vector3::zeros(),
-            covariance: OMatrix::<f32, U15, U15>::identity() * self.process_covariance,
+            covariance: OMatrix::<f32, U15, U15>::from_diagonal(
+                &Vector::<f32, U15, _>::from_row_slice(&[
+                    self.process_covariance.position,
+                    self.process_covariance.position,
+                    self.process_covariance.position,
+                    self.process_covariance.velocity,
+                    self.process_covariance.velocity,
+                    self.process_covariance.velocity,
+                    self.process_covariance.orientation,
+                    self.process_covariance.orientation,
+                    self.process_covariance.orientation,
+                    self.process_covariance.accel_bias,
+                    self.process_covariance.accel_bias,
+                    self.process_covariance.accel_bias,
+                    self.process_covariance.rot_bias,
+                    self.process_covariance.rot_bias,
+                    self.process_covariance.rot_bias,
+                ]),
+            ),
             var_acc: self.var_acc,
             var_rot: self.var_rot,
             var_acc_bias: self.var_acc_bias,
             var_rot_bias: self.var_rot_bias,
         }
     }
+}
+
+
+/// Parameter list for [`Builder::initial_covariances`]
+#[derive(Copy, Clone, Default, Debug)]
+pub struct InitialCovariances {
+    /// Initial variance for position
+    pub position: f32,
+    /// Initial variance for velocity
+    pub velocity: f32,
+    /// Initial variance for orientation
+    pub orientation: f32,
+    /// Initial variance for acceleration bias
+    pub accel_bias: f32,
+    /// Initial variance for rotation bias
+    pub rot_bias: f32,
 }
 
 /// Error State Kalman Filter
