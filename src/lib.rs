@@ -319,6 +319,16 @@ impl ESKF {
         self.uncertainty3(6)
     }
 
+    /// Sets the acceleration variance
+    pub fn set_acceleration_variance(&mut self, variance: Vector3<f32>) {
+        self.var_acc = variance;
+    }
+
+    /// Sets the rotational variance
+    pub fn set_rotational_variance(&mut self, variance: Vector3<f32>) {
+        self.var_rot = variance;
+    }
+
     /// Update the filter, predicting the new state, based on measured acceleration and rotation
     /// from an `IMU`
     pub fn predict(&mut self, acceleration: Vector3<f32>, rotation: Vector3<f32>, delta: Delta) {
