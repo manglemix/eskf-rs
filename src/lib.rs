@@ -65,17 +65,17 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub type Delta = std::time::Duration;
 /// Time delta in seconds, used in `no_std` environments
 #[cfg(not(feature = "std"))]
-pub type Delta = f32;
+pub type Delta = f64;
 
 /// Builder for [`ESKF`]
 #[derive(Copy, Clone, Debug)]
 pub struct Builder {
-    var_acc: Vector3<f32>,
-    var_rot: Vector3<f32>,
-    var_acc_bias: Vector3<f32>,
-    var_rot_bias: Vector3<f32>,
+    var_acc: Vector3<f64>,
+    var_rot: Vector3<f64>,
+    var_acc_bias: Vector3<f64>,
+    var_rot_bias: Vector3<f64>,
     process_covariance: InitialCovariances,
-    gravity: Vector3<f32>,
+    gravity: Vector3<f64>,
 }
 
 impl Builder {
@@ -87,7 +87,7 @@ impl Builder {
     /// Set the acceleration variance of the IMU system being modeled
     ///
     /// The variance should be `m/s²`
-    pub fn acceleration_variance(mut self, var: f32) -> Self {
+    pub fn acceleration_variance(mut self, var: f64) -> Self {
         self.var_acc = Vector3::from_element(var.powi(2));
         self
     }
@@ -95,7 +95,7 @@ impl Builder {
     /// Set the acceleration variance of the IMU system being modeled
     ///
     /// The variance should be a vector in [`m/s²`, 3]
-    pub fn acceleration_variance_from_vec(mut self, var: Vector3<f32>) -> Self {
+    pub fn acceleration_variance_from_vec(mut self, var: Vector3<f64>) -> Self {
         self.var_acc = var.map(|e| e.powi(2));
         self
     }
@@ -103,7 +103,7 @@ impl Builder {
     /// Set the rotation variance of the IMU system being modeled
     ///
     /// The variance should be `rad/s`
-    pub fn rotation_variance(mut self, var: f32) -> Self {
+    pub fn rotation_variance(mut self, var: f64) -> Self {
         self.var_rot = Vector3::from_element(var.powi(2));
         self
     }
@@ -111,7 +111,7 @@ impl Builder {
     /// Set the rotation variance of the IMU system being modeled
     ///
     /// The variance should a vector in [`rad/s`, 3]
-    pub fn rotation_variance_from_vec(mut self, var: Vector3<f32>) -> Self {
+    pub fn rotation_variance_from_vec(mut self, var: Vector3<f64>) -> Self {
         self.var_rot = var.map(|e| e.powi(2));
         self
     }
@@ -119,7 +119,7 @@ impl Builder {
     /// Set the acceleration bias of the IMU system being modeled
     ///
     /// The bias should be `m/(s²sqrt(s))`
-    pub fn acceleration_bias(mut self, bias: f32) -> Self {
+    pub fn acceleration_bias(mut self, bias: f64) -> Self {
         self.var_acc_bias = Vector3::from_element(bias.powi(2));
         self
     }
@@ -127,7 +127,7 @@ impl Builder {
     /// Set the acceleration bias of the IMU system being modeled
     ///
     /// The bias should be a vector in [`m/(s²sqrt(s))`, 3]
-    pub fn acceleration_bias_from_vec(mut self, bias: Vector3<f32>) -> Self {
+    pub fn acceleration_bias_from_vec(mut self, bias: Vector3<f64>) -> Self {
         self.var_acc_bias = bias.map(|e| e.powi(2));
         self
     }
@@ -135,7 +135,7 @@ impl Builder {
     /// Set the rotation bias of the IMU system being modeled
     ///
     /// The bias should be `rad/(s sqrt(s))`
-    pub fn rotation_bias(mut self, bias: f32) -> Self {
+    pub fn rotation_bias(mut self, bias: f64) -> Self {
         self.var_rot_bias = Vector3::from_element(bias.powi(2));
         self
     }
@@ -143,7 +143,7 @@ impl Builder {
     /// Set the rotation bias of the IMU system being modeled
     ///
     /// The bias should a vector in [`rad/(s sqrt(s))`, 3]
-    pub fn rotation_bias_from_vec(mut self, bias: Vector3<f32>) -> Self {
+    pub fn rotation_bias_from_vec(mut self, bias: Vector3<f64>) -> Self {
         self.var_rot_bias = bias.map(|e| e.powi(2));
         self
     }
@@ -153,7 +153,7 @@ impl Builder {
     /// The covariance value should be a small process value so that the covariance of the filter
     /// quickly converges to the correct value. Too small values could lead to the filter taking a
     /// long time to converge and report a lower covariance than what it should.
-    pub fn initial_covariance(mut self, covar: f32) -> Self {
+    pub fn initial_covariance(mut self, covar: f64) -> Self {
         self.process_covariance = InitialCovariances {
             position: covar,
             velocity: covar,
@@ -171,7 +171,7 @@ impl Builder {
     }
 
     /// Set the used gravity
-    pub fn gravity(mut self, gravity: Vector3<f32>) -> Self {
+    pub fn gravity(mut self, gravity: Vector3<f64>) -> Self {
         self.gravity = gravity;
         self
     }
@@ -185,8 +185,8 @@ impl Builder {
             accel_bias: Vector3::zeros(),
             rot_bias: Vector3::zeros(),
             gravity: self.gravity,
-            covariance: OMatrix::<f32, U15, U15>::from_diagonal(
-                &Vector::<f32, U15, _>::from_row_slice(&[
+            covariance: OMatrix::<f64, U15, U15>::from_diagonal(
+                &Vector::<f64, U15, _>::from_row_slice(&[
                     self.process_covariance.position,
                     self.process_covariance.position,
                     self.process_covariance.position,
@@ -220,7 +220,7 @@ impl Default for Builder {
             var_acc_bias: Default::default(),
             var_rot_bias: Default::default(),
             process_covariance: Default::default(),
-            gravity: Vector3::new(0f32, 0f32, 9.81),
+            gravity: Vector3::new(0f64, 0f64, 9.81),
         }
     }
 }
@@ -229,15 +229,15 @@ impl Default for Builder {
 #[derive(Copy, Clone, Default, Debug)]
 pub struct InitialCovariances {
     /// Initial variance for position
-    pub position: f32,
+    pub position: f64,
     /// Initial variance for velocity
-    pub velocity: f32,
+    pub velocity: f64,
     /// Initial variance for orientation
-    pub orientation: f32,
+    pub orientation: f64,
     /// Initial variance for acceleration bias
-    pub accel_bias: f32,
+    pub accel_bias: f64,
     /// Initial variance for rotation bias
-    pub rot_bias: f32,
+    pub rot_bias: f64,
 }
 
 /// Error State Kalman Filter
@@ -256,27 +256,27 @@ pub struct InitialCovariances {
 #[derive(Copy, Clone, Debug)]
 pub struct ESKF {
     /// Estimated position in filter
-    pub position: Point3<f32>,
+    pub position: Point3<f64>,
     /// Estimated velocity in filter
-    pub velocity: Vector3<f32>,
+    pub velocity: Vector3<f64>,
     /// Estimated orientation in filter
-    pub orientation: UnitQuaternion<f32>,
+    pub orientation: UnitQuaternion<f64>,
     /// Estimated acceleration bias
-    pub accel_bias: Vector3<f32>,
+    pub accel_bias: Vector3<f64>,
     /// Estimated rotation bias
-    pub rot_bias: Vector3<f32>,
+    pub rot_bias: Vector3<f64>,
     /// Currently used gravity vector
-    pub gravity: Vector3<f32>,
+    pub gravity: Vector3<f64>,
     /// Covariance of filter state
-    covariance: OMatrix<f32, U15, U15>,
+    covariance: OMatrix<f64, U15, U15>,
     /// Acceleration variance
-    var_acc: Vector3<f32>,
+    var_acc: Vector3<f64>,
     /// Rotation variance
-    var_rot: Vector3<f32>,
+    var_rot: Vector3<f64>,
     /// Acceleration variance bias
-    var_acc_bias: Vector3<f32>,
+    var_acc_bias: Vector3<f64>,
     /// Rotation variance bias
-    var_rot_bias: Vector3<f32>,
+    var_rot_bias: Vector3<f64>,
 }
 
 impl ESKF {
@@ -284,7 +284,7 @@ impl ESKF {
     ///
     /// This helper method can be used when the sensor being modelled has a symmetric variance
     /// around its three axis. Or if only an estimate of the variance is known.
-    pub fn variance_from_element(var: f32) -> Matrix3<f32> {
+    pub fn variance_from_element(var: f64) -> Matrix3<f64> {
         Matrix3::from_diagonal_element(var)
     }
 
@@ -292,12 +292,12 @@ impl ESKF {
     ///
     /// This helper method can be used when the sensor being modelled has a independent variance
     /// around its three axis.
-    pub fn variance_from_diagonal(var: Vector3<f32>) -> Matrix3<f32> {
+    pub fn variance_from_diagonal(var: Vector3<f64>) -> Matrix3<f64> {
         Matrix3::from_diagonal(&var)
     }
 
     /// Internal helper method to extract 3 dimensional uncertainty from the covariance state
-    fn uncertainty3(&self, start: usize) -> Vector3<f32> {
+    fn uncertainty3(&self, start: usize) -> Vector3<f64> {
         self.covariance
             .diagonal()
             .fixed_view::<3, 1>(start, 0)
@@ -305,35 +305,35 @@ impl ESKF {
     }
 
     /// Get the uncertainty of the position estimate
-    pub fn position_uncertainty(&self) -> Vector3<f32> {
+    pub fn position_uncertainty(&self) -> Vector3<f64> {
         self.uncertainty3(0)
     }
 
     /// Get the uncertainty of the velocity estimate
-    pub fn velocity_uncertainty(&self) -> Vector3<f32> {
+    pub fn velocity_uncertainty(&self) -> Vector3<f64> {
         self.uncertainty3(3)
     }
 
     /// Get the uncertainty of the orientation estimate
-    pub fn orientation_uncertainty(&self) -> Vector3<f32> {
+    pub fn orientation_uncertainty(&self) -> Vector3<f64> {
         self.uncertainty3(6)
     }
 
     /// Sets the acceleration variance
-    pub fn set_acceleration_variance(&mut self, variance: Vector3<f32>) {
+    pub fn set_acceleration_variance(&mut self, variance: Vector3<f64>) {
         self.var_acc = variance;
     }
 
     /// Sets the rotational variance
-    pub fn set_rotational_variance(&mut self, variance: Vector3<f32>) {
+    pub fn set_rotational_variance(&mut self, variance: Vector3<f64>) {
         self.var_rot = variance;
     }
 
     /// Update the filter, predicting the new state, based on measured acceleration and rotation
     /// from an `IMU`
-    pub fn predict(&mut self, acceleration: Vector3<f32>, rotation: Vector3<f32>, delta: Delta) {
+    pub fn predict(&mut self, acceleration: Vector3<f64>, rotation: Vector3<f64>, delta: Delta) {
         #[cfg(feature = "std")]
-        let delta_t = delta.as_secs_f32();
+        let delta_t = delta.as_secs_f64();
         #[cfg(not(feature = "std"))]
         let delta_t = delta;
 
@@ -350,8 +350,8 @@ impl ESKF {
 
         // Propagate uncertainty, since we have not observed any new information about the state of
         // the filter we need to update our estimate of the uncertainty of the filer
-        let ident_delta = Matrix3::<f32>::identity() * delta_t;
-        let mut error_jacobian = OMatrix::<f32, U15, U15>::identity();
+        let ident_delta = Matrix3::<f64>::identity() * delta_t;
+        let mut error_jacobian = OMatrix::<f64, U15, U15>::identity();
         error_jacobian
             .fixed_view_mut::<3, 3>(0, 3)
             .copy_from(&ident_delta);
@@ -394,15 +394,15 @@ impl ESKF {
     /// - `variance` is the uncertainty of the observation
     pub fn update<R: Dim>(
         &mut self,
-        jacobian: OMatrix<f32, R, U15>,
-        difference: OVector<f32, R>,
-        variance: OMatrix<f32, R, R>,
+        jacobian: OMatrix<f64, R, U15>,
+        difference: OVector<f64, R>,
+        variance: OMatrix<f64, R, R>,
     ) -> Result<()>
     where
-        DefaultAllocator: Allocator<f32, R>
-            + Allocator<f32, R, R>
-            + Allocator<f32, R, U15>
-            + Allocator<f32, U15, R>,
+        DefaultAllocator: Allocator<f64, R>
+            + Allocator<f64, R, R>
+            + Allocator<f64, R, U15>
+            + Allocator<f64, U15, R>,
     {
         // Correct filter based on Kalman gain
         let kalman_gain = self.covariance
@@ -417,12 +417,12 @@ impl ESKF {
                 * (&jacobian * self.covariance * &jacobian.transpose() + &variance)
                 * &kalman_gain.transpose();
         } else if cfg!(feature = "cov-joseph") {
-            let step1 = OMatrix::<f32, U15, U15>::identity() - &kalman_gain * &jacobian;
+            let step1 = OMatrix::<f64, U15, U15>::identity() - &kalman_gain * &jacobian;
             let step2 = &kalman_gain * &variance * &kalman_gain.transpose();
             self.covariance = step1 * self.covariance * step1.transpose() + step2;
         } else {
             self.covariance =
-                (OMatrix::<f32, U15, U15>::identity() - &kalman_gain * &jacobian) * self.covariance;
+                (OMatrix::<f64, U15, U15>::identity() - &kalman_gain * &jacobian) * self.covariance;
         }
         // Inject error state into nominal
         self.position += error_state.fixed_view::<3, 1>(0, 0);
@@ -435,7 +435,7 @@ impl ESKF {
         // Since the orientation error is usually relatively small this step can be skipped, but
         // the full formulation can lead to better stability of the filter
         if cfg!(feature = "full-reset") {
-            let mut g = OMatrix::<f32, U15, U15>::identity();
+            let mut g = OMatrix::<f64, U15, U15>::identity();
             g.fixed_view_mut::<3, 3>(6, 6)
                 .sub_assign(0.5 * skew(&error_state.fixed_view::<3, 1>(6, 0).clone_owned()));
             self.covariance = g * self.covariance * g.transpose();
@@ -450,21 +450,21 @@ impl ESKF {
     /// note that GPS velocity tends to be more precise than position.
     pub fn observe_position_velocity2d(
         &mut self,
-        position: Point3<f32>,
-        position_var: Matrix3<f32>,
-        velocity: Vector2<f32>,
-        velocity_var: Matrix2<f32>,
+        position: Point3<f64>,
+        position_var: Matrix3<f64>,
+        velocity: Vector2<f64>,
+        velocity_var: Matrix2<f64>,
     ) -> Result<()> {
-        let mut jacobian = OMatrix::<f32, U5, U15>::zeros();
+        let mut jacobian = OMatrix::<f64, U5, U15>::zeros();
         jacobian.fixed_view_mut::<5, 5>(0, 0).fill_with_identity();
 
-        let mut diff = OVector::<f32, U5>::zeros();
+        let mut diff = OVector::<f64, U5>::zeros();
         diff.fixed_view_mut::<3, 1>(0, 0)
             .copy_from(&(position - self.position));
         diff.fixed_view_mut::<2, 1>(3, 0)
             .copy_from(&(velocity - self.velocity.xy()));
 
-        let mut var = OMatrix::<f32, U5, U5>::zeros();
+        let mut var = OMatrix::<f64, U5, U5>::zeros();
         var.fixed_view_mut::<3, 3>(0, 0).copy_from(&position_var);
         var.fixed_view_mut::<2, 2>(3, 3).copy_from(&velocity_var);
 
@@ -474,21 +474,21 @@ impl ESKF {
     /// Update the filter with an observation of the position
     pub fn observe_position(
         &mut self,
-        measurement: Point3<f32>,
-        variance: Matrix3<f32>,
+        measurement: Point3<f64>,
+        variance: Matrix3<f64>,
     ) -> Result<()> {
-        let mut jacobian = OMatrix::<f32, U3, U15>::zeros();
+        let mut jacobian = OMatrix::<f64, U3, U15>::zeros();
         jacobian.fixed_view_mut::<3, 3>(0, 0).fill_with_identity();
         let diff = measurement - self.position;
         self.update(jacobian, diff, variance)
     }
 
     /// Update the filter with an observation of the height alone
-    pub fn observe_height(&mut self, measured: f32, variance: f32) -> Result<()> {
-        let mut jacobian = OMatrix::<f32, U1, U15>::zeros();
+    pub fn observe_height(&mut self, measured: f64, variance: f64) -> Result<()> {
+        let mut jacobian = OMatrix::<f64, U1, U15>::zeros();
         jacobian.fixed_view_mut::<1, 1>(0, 2).fill_with_identity();
-        let diff = OVector::<f32, U1>::new(measured - self.position.z);
-        let var = OMatrix::<f32, U1, U1>::new(variance);
+        let diff = OVector::<f64, U1>::new(measured - self.position.z);
+        let var = OMatrix::<f64, U1, U1>::new(variance);
         self.update(jacobian, diff, var)
     }
 
@@ -500,10 +500,10 @@ impl ESKF {
     /// the filter, e.g. `filter.orientation.transform_vector(&relative_measurement)`.
     pub fn observe_velocity(
         &mut self,
-        measurement: Vector3<f32>,
-        variance: Matrix3<f32>,
+        measurement: Vector3<f64>,
+        variance: Matrix3<f64>,
     ) -> Result<()> {
-        let mut jacobian = OMatrix::<f32, U3, U15>::zeros();
+        let mut jacobian = OMatrix::<f64, U3, U15>::zeros();
         jacobian.fixed_view_mut::<3, 3>(0, 3).fill_with_identity();
         let diff = measurement - self.velocity;
         self.update(jacobian, diff, variance)
@@ -517,10 +517,10 @@ impl ESKF {
     /// the filter, e.g. `filter.orientation.transform_vector(&relative_measurement)`.
     pub fn observe_velocity2d(
         &mut self,
-        measurement: Vector2<f32>,
-        variance: Matrix2<f32>,
+        measurement: Vector2<f64>,
+        variance: Matrix2<f64>,
     ) -> Result<()> {
-        let mut jacobian = OMatrix::<f32, U2, U15>::zeros();
+        let mut jacobian = OMatrix::<f64, U2, U15>::zeros();
         jacobian.fixed_view_mut::<2, 2>(0, 3).fill_with_identity();
         let diff = Vector2::new(
             measurement.x - self.velocity.x,
@@ -532,10 +532,10 @@ impl ESKF {
     /// Update the filter with an observation of the orientation
     pub fn observe_orientation(
         &mut self,
-        measurement: UnitQuaternion<f32>,
-        variance: Matrix3<f32>,
+        measurement: UnitQuaternion<f64>,
+        variance: Matrix3<f64>,
     ) -> Result<()> {
-        let mut jacobian = OMatrix::<f32, U3, U15>::zeros();
+        let mut jacobian = OMatrix::<f64, U3, U15>::zeros();
         jacobian.fixed_view_mut::<3, 3>(0, 6).fill_with_identity();
         let diff = measurement * self.orientation;
         self.update(jacobian, diff.scaled_axis(), variance)
@@ -544,7 +544,7 @@ impl ESKF {
 
 /// Create the skew-symmetric matrix from a vector
 #[rustfmt::skip]
-fn skew(v: &Vector3<f32>) -> Matrix3<f32> {
+fn skew(v: &Vector3<f64>) -> Matrix3<f64> {
     Matrix3::new(0., -v.z, v.y,
                  v.z, 0., -v.x,
                  -v.y, v.x, 0.)
@@ -555,7 +555,7 @@ mod test {
     use super::Builder;
     use approx::assert_relative_eq;
     use nalgebra::{Point3, UnitQuaternion, Vector3};
-    use std::f32::consts::FRAC_PI_2;
+    use std::f64::consts::FRAC_PI_2;
     use std::time::Duration;
 
     #[test]
